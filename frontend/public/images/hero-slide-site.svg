@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-label="Site monitoring">
+  <defs>
+    <linearGradient id="bg4" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#F39C12"/>
+      <stop offset="60%" stop-color="#E67E22"/>
+      <stop offset="100%" stop-color="#2C3E50"/>
+    </linearGradient>
+  </defs>
+  <rect width="1600" height="900" fill="url(#bg4)"/>
+  <rect x="0" y="620" width="1600" height="280" fill="#1C2833" opacity="0.85"/>
+  <rect x="300" y="380" width="180" height="240" fill="#95A5A6"/>
+  <rect x="520" y="300" width="220" height="320" fill="#BDC3C7"/>
+  <rect x="780" y="340" width="200" height="280" fill="#95A5A6"/>
+  <circle cx="1350" cy="200" r="80" fill="#F1C40F" opacity="0.9"/>
+  <text x="80" y="120" fill="#fff" font-family="system-ui,sans-serif" font-size="48" font-weight="700">Build &amp; Monitor</text>
+  <text x="80" y="180" fill="#FDEBD0" font-family="system-ui,sans-serif" font-size="28">Contractors, logs, and progress in one place</text>
+</svg>

@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none" role="img" aria-label="BuildPlan AI">
+  <defs>
+    <linearGradient id="bp-g" x1="18" y1="12" x2="102" y2="108" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#E67E22"/>
+      <stop offset="1" stop-color="#D35400"/>
+    </linearGradient>
+    <linearGradient id="bp-s" x1="30" y1="28" x2="90" y2="92" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFFFF" stop-opacity="0.95"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0.75"/>
+    </linearGradient>
+  </defs>
+  <rect x="8" y="8" width="104" height="104" rx="28" fill="url(#bp-g)"/>
+  <path d="M36 78V42h12l18 22 18-22h12v36H84V58L66 80 48 58v20H36z" fill="url(#bp-s)"/>
+  <rect x="36" y="82" width="48" height="6" rx="3" fill="#FFFFFF" opacity="0.85"/>
+</svg>

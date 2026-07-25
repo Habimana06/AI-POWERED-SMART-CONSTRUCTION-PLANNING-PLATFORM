@@ -1,0 +1,348 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    @apply border-steel-200/70;
+  }
+
+  html {
+    @apply scroll-smooth antialiased;
+    font-size: 14px;
+  }
+
+  body {
+    @apply bg-background text-ink font-sans antialiased min-h-screen;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display font-semibold text-steel-800 tracking-tight;
+  }
+
+  ::selection {
+    @apply bg-primary/20 text-steel-900;
+  }
+
+  :focus-visible {
+    @apply outline-none ring-2 ring-primary/30 ring-offset-2;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center gap-1.5 rounded-lg px-4 py-2 text-xs font-semibold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98];
+  }
+
+  .btn-primary {
+    @apply btn bg-primary text-white hover:bg-primary-500 focus:ring-primary shadow-sm hover:shadow-md hover:shadow-primary/20;
+  }
+
+  .btn-secondary {
+    @apply btn bg-steel text-white hover:bg-steel-600 focus:ring-steel shadow-sm;
+  }
+
+  .btn-outline {
+    @apply btn border-2 border-steel-200 bg-white text-steel hover:border-primary hover:text-primary focus:ring-primary hover:shadow-sm;
+  }
+
+  .btn-ghost {
+    @apply btn bg-transparent text-steel hover:bg-steel-50 focus:ring-steel;
+  }
+
+  .btn-danger {
+    @apply btn bg-danger text-white hover:bg-red-600 focus:ring-danger shadow-sm hover:shadow-danger/20;
+  }
+
+  .input {
+    @apply w-full rounded-lg border border-steel-200 bg-white px-3 py-2 text-xs text-ink transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/15;
+  }
+
+  .input::placeholder {
+    color: #B0B5BA;
+  }
+
+  .label {
+    @apply mb-1.5 block text-xs font-medium text-steel-600;
+  }
+
+  .card {
+    @apply rounded-xl bg-card p-4 shadow-card border border-steel-100/80 transition-all duration-200 hover:shadow-card-hover;
+  }
+
+  .page-container {
+    @apply mx-auto max-w-7xl px-4 sm:px-6 lg:px-8;
+  }
+
+  .section-title {
+    @apply text-xl font-bold tracking-tight text-steel-800 md:text-2xl;
+  }
+
+  .section-subtitle {
+    @apply mt-2 text-sm max-w-2xl leading-relaxed;
+    color: #B0B5BA;
+  }
+
+  .badge {
+    @apply inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold;
+  }
+
+  .badge-success {
+    @apply badge bg-success-50 text-success-700 border border-success-100;
+  }
+
+  .badge-warning {
+    @apply badge bg-safety-50 text-safety-700 border border-safety-100;
+  }
+
+  .badge-danger {
+    @apply badge bg-danger-50 text-danger-700 border border-danger-100;
+  }
+
+  .badge-info {
+    @apply badge bg-primary/10 text-primary-700 border border-primary/20;
+  }
+
+  .badge-neutral {
+    @apply badge bg-steel-50 text-steel-500 border border-steel-100;
+  }
+}
+
+@layer utilities {
+  .text-gradient {
+    @apply bg-gradient-to-r from-primary to-safety-500 bg-clip-text text-transparent;
+  }
+
+  .glass {
+    @apply bg-white/80 backdrop-blur-xl border border-white/20;
+  }
+
+  .glass-dark {
+    @apply bg-steel-800/80 backdrop-blur-xl border border-steel-700/50;
+  }
+
+  .divider {
+    @apply w-full h-px bg-gradient-to-r from-transparent via-steel-200 to-transparent;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 3px;
+  border: 1px solid transparent;
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94A3B8;
+  border: 1px solid transparent;
+  background-clip: padding-box;
+}
+
+/* Recharts tooltip */
+.recharts-default-tooltip {
+  @apply rounded-xl border-0 shadow-card !important;
+}
+
+/* Three.js canvas */
+.three-canvas {
+  @apply rounded-2xl overflow-hidden;
+}
+
+/* Loading shimmer */
+.shimmer {
+  @apply animate-pulse bg-gradient-to-r from-steel-100 via-steel-50 to-steel-100 bg-[length:200%_100%];
+}
+
+/* Print styles */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+}
+
+/* Dashboard dark mode — main column only (sidebar unchanged), true black + subtle glow */
+html.dashboard-theme-dark,
+html.dashboard-theme-dark body {
+  transition: background-color 0.45s ease, color 0.35s ease;
+}
+
+html.dashboard-theme-dark {
+  background: #000;
+}
+
+@keyframes dashboardDarkIn {
+  from { opacity: 0.85; }
+  to { opacity: 1; }
+}
+
+@keyframes dashboardDarkGlow {
+  0%, 100% { opacity: 0.35; }
+  50% { opacity: 0.55; }
+}
+
+.dashboard-dark {
+  background: #000 !important;
+  color: #fff !important;
+  animation: dashboardDarkIn 0.45s ease-out;
+  position: relative;
+}
+
+.dashboard-dark::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: 4.5rem;
+  height: 40vh;
+  pointer-events: none;
+  background: radial-gradient(ellipse 80% 60% at 70% 0%, rgba(230, 126, 34, 0.12), transparent 70%);
+  animation: dashboardDarkGlow 8s ease-in-out infinite;
+  z-index: 0;
+}
+
+.dashboard-dark .dashboard-navbar {
+  background: rgba(0, 0, 0, 0.92) !important;
+  border-color: #333 !important;
+  color: #fff !important;
+  backdrop-filter: blur(12px);
+}
+
+.dashboard-dark main {
+  background: #000 !important;
+  position: relative;
+  z-index: 1;
+}
+
+.dashboard-dark h1,
+.dashboard-dark h2,
+.dashboard-dark h3,
+.dashboard-dark h4,
+.dashboard-dark .text-steel,
+.dashboard-dark .text-steel-800,
+.dashboard-dark .text-steel-700,
+.dashboard-dark .text-steel-600,
+.dashboard-dark .text-ink {
+  color: #fff !important;
+}
+
+.dashboard-dark .text-concrete,
+.dashboard-dark .text-concrete-400,
+.dashboard-dark .text-concrete-500,
+.dashboard-dark p,
+.dashboard-dark li,
+.dashboard-dark dd,
+.dashboard-dark dt,
+.dashboard-dark label,
+.dashboard-dark td,
+.dashboard-dark th,
+.dashboard-dark .label {
+  color: #e5e7eb !important;
+}
+
+.dashboard-dark .card,
+.dashboard-dark .rounded-2xl.bg-white,
+.dashboard-dark [class*='rounded-xl'][class*='bg-white'] {
+  background: #0d0d0d !important;
+  border-color: #2a2a2a !important;
+  color: #fff !important;
+}
+
+.dashboard-dark .input,
+.dashboard-dark select.input {
+  background: #111 !important;
+  border-color: #333 !important;
+  color: #fff !important;
+}
+
+.dashboard-dark .input::placeholder {
+  color: #6b7280 !important;
+}
+
+.dashboard-dark .btn-outline {
+  border-color: #444 !important;
+  background: #111 !important;
+  color: #fff !important;
+}
+
+.dashboard-dark .btn-ghost {
+  color: #fff !important;
+}
+
+.dashboard-dark .border-steel-100,
+.dashboard-dark .border-steel-50,
+.dashboard-dark .divide-steel-100 > :not([hidden]) ~ :not([hidden]) {
+  border-color: #2a2a2a !important;
+}
+
+.dashboard-dark .bg-steel-50,
+.dashboard-dark .bg-white,
+.dashboard-dark .bg-concrete-50,
+.dashboard-dark thead tr,
+.dashboard-dark tbody tr:hover {
+  background: #111 !important;
+}
+
+.dashboard-dark table thead th {
+  background: #0a0a0a !important;
+  color: #d1d5db !important;
+}
+
+.dashboard-dark tbody td {
+  color: #f3f4f6 !important;
+}
+
+.dashboard-dark .text-primary {
+  color: #f39c12 !important;
+}
+
+.dashboard-dark .recharts-cartesian-grid line {
+  stroke: #333;
+}
+
+.dashboard-dark .recharts-text,
+.dashboard-dark .recharts-legend-item-text {
+  fill: #e5e7eb !important;
+}
+
+.dashboard-dark .group.relative.overflow-hidden.rounded-xl.bg-white {
+  background: #0d0d0d !important;
+}
+
+.dashboard-dark .dashboard-navbar h1,
+.dashboard-dark .dashboard-navbar p,
+.dashboard-dark .dashboard-navbar .text-steel-800,
+.dashboard-dark .dashboard-navbar .text-xs {
+  color: #fff !important;
+}
+
+.dashboard-dark .dashboard-navbar .text-concrete-400 {
+  color: #d1d5db !important;
+}
+
+.dashboard-dark strong {
+  color: #fff !important;
+}
+
+.dashboard-dark .text-xs.font-semibold.text-steel,
+.dashboard-dark td .text-steel,
+.dashboard-dark .font-semibold.text-steel {
+  color: #f9fafb !important;
+}
+
+.dashboard-dark .sidebar-shell ~ * {
+  transition: background-color 0.5s ease;
+}

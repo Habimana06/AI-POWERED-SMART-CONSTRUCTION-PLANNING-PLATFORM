@@ -1,0 +1,24 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Alex — Site lead">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="200" y2="200"><stop stop-color="#1a252f"/><stop offset="1" stop-color="#2C3E50"/></linearGradient>
+    <linearGradient id="vest" x1="0" y1="120" x2="200" y2="200"><stop stop-color="#F39C12"/><stop offset="1" stop-color="#E67E22"/></linearGradient>
+  </defs>
+  <rect width="200" height="200" rx="36" fill="url(#bg)"/>
+  <ellipse cx="100" cy="178" rx="72" ry="28" fill="#000" opacity="0.25"/>
+  <path d="M38 200 L162 200 L145 132 Q100 118 55 132 Z" fill="url(#vest)"/>
+  <path d="M55 132 L145 132 L138 200 L62 200 Z" fill="#D35400" opacity="0.35"/>
+  <rect x="62" y="138" width="12" height="42" rx="2" fill="#FFF" opacity="0.9"/>
+  <rect x="126" y="138" width="12" height="42" rx="2" fill="#FFF" opacity="0.9"/>
+  <ellipse cx="100" cy="108" rx="38" ry="42" fill="#C68642"/>
+  <ellipse cx="100" cy="115" rx="32" ry="34" fill="#E0AC69"/>
+  <path d="M62 88 Q100 52 138 88 L132 72 Q100 44 68 72 Z" fill="#F1C40F"/>
+  <path d="M58 86 Q100 48 142 86 L140 78 Q100 38 60 78 Z" fill="#F39C12"/>
+  <rect x="54" y="82" width="92" height="10" rx="4" fill="#E67E22"/>
+  <ellipse cx="86" cy="108" rx="5" ry="6" fill="#2C3E50"/>
+  <ellipse cx="114" cy="108" rx="5" ry="6" fill="#2C3E50"/>
+  <ellipse cx="87" cy="107" rx="1.5" ry="2" fill="#FFF"/>
+  <ellipse cx="115" cy="107" rx="1.5" ry="2" fill="#FFF"/>
+  <path d="M88 122 Q100 132 112 122" stroke="#8B5E3C" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  <path d="M78 98 Q82 92 86 98" stroke="#8B5E3C" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <path d="M114 98 Q118 92 122 98" stroke="#8B5E3C" stroke-width="2" fill="none" stroke-linecap="round"/>
+</svg>

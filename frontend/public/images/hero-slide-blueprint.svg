@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-label="Blueprints">
+  <rect width="1600" height="900" fill="#ECF0F1"/>
+  <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+    <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#BDC3C7" stroke-width="1"/>
+  </pattern>
+  <rect width="1600" height="900" fill="url(#grid)"/>
+  <rect x="200" y="160" width="700" height="580" fill="#fff" stroke="#2C3E50" stroke-width="4"/>
+  <rect x="280" y="260" width="200" height="160" fill="none" stroke="#E67E22" stroke-width="3"/>
+  <rect x="520" y="260" width="280" height="160" fill="none" stroke="#E67E22" stroke-width="3"/>
+  <rect x="280" y="460" width="520" height="200" fill="none" stroke="#E67E22" stroke-width="3"/>
+  <text x="980" y="280" fill="#2C3E50" font-family="system-ui,sans-serif" font-size="44" font-weight="700">Blueprints &amp;</text>
+  <text x="980" y="340" fill="#E67E22" font-family="system-ui,sans-serif" font-size="44" font-weight="700">Full-House Renders</text>
+  <text x="980" y="400" fill="#566573" font-family="system-ui,sans-serif" font-size="26">Same geometry  plan to photoreal exterior</text>
+</svg>

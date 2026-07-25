@@ -1,0 +1,39 @@
+# Environment & secrets (never commit keys)
+.env
+.env.*
+!.env.example
+!**/.env.example
+backend/.env
+frontend/.env
+*.pem
+*.key
+*.p12
+credentials.json
+**/secrets/
+
+# Dependencies
+node_modules/
+
+# Build
+dist/
+build/
+*.log
+
+# Uploads
+backend/uploads/*
+!backend/uploads/.gitkeep
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Docker local data
+mysql_data/
+
+# Local Cursor assets (optional large/cache)
+.cursor/projects/

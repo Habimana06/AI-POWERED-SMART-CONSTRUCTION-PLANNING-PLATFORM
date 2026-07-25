@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-label="3D building design">
+  <defs>
+    <linearGradient id="bg1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1a252f"/>
+      <stop offset="100%" stop-color="#2c3e50"/>
+    </linearGradient>
+  </defs>
+  <rect width="1600" height="900" fill="url(#bg1)"/>
+  <rect x="480" y="280" width="640" height="420" fill="#D5DBDB" opacity="0.9"/>
+  <rect x="520" y="320" width="120" height="100" fill="#87CEEB"/>
+  <rect x="680" y="320" width="120" height="100" fill="#87CEEB"/>
+  <rect x="840" y="320" width="120" height="100" fill="#87CEEB"/>
+  <rect x="520" y="460" width="120" height="100" fill="#87CEEB"/>
+  <polygon points="460,280 800,120 1140,280" fill="#E67E22"/>
+  <text x="80" y="120" fill="#fff" font-family="system-ui,sans-serif" font-size="48" font-weight="700">3D Building Design</text>
+  <text x="80" y="180" fill="#FADBD8" font-family="system-ui,sans-serif" font-size="28">Draw floor plans that drive every view</text>
+</svg>

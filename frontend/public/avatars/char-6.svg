@@ -1,0 +1,20 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Pat — Project planner">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="200" y2="200"><stop stop-color="#1C2833"/><stop offset="1" stop-color="#566573"/></linearGradient>
+  </defs>
+  <rect width="200" height="200" rx="36" fill="url(#bg)"/>
+  <ellipse cx="100" cy="178" rx="72" ry="28" fill="#000" opacity="0.25"/>
+  <path d="M42 200 L158 200 L142 130 Q100 116 58 130 Z" fill="#5D6D7E"/>
+  <path d="M58 130 L142 130 L134 200 L66 200 Z" fill="#34495E" opacity="0.55"/>
+  <rect x="78" y="142" width="44" height="32" rx="4" fill="#ECF0F1" opacity="0.9"/>
+  <line x1="84" y1="150" x2="116" y2="150" stroke="#3498DB" stroke-width="2"/>
+  <line x1="84" y1="158" x2="110" y2="158" stroke="#BDC3C7" stroke-width="2"/>
+  <line x1="84" y1="166" x2="114" y2="166" stroke="#BDC3C7" stroke-width="2"/>
+  <ellipse cx="100" cy="108" rx="37" ry="41" fill="#C68642"/>
+  <ellipse cx="100" cy="115" rx="31" ry="33" fill="#DEB887"/>
+  <path d="M64 90 Q100 56 136 90 L130 76 Q100 48 70 76 Z" fill="#85929E"/>
+  <rect x="56" y="84" width="88" height="8" rx="3" fill="#707B7C"/>
+  <ellipse cx="87" cy="107" rx="4" ry="5" fill="#212F3D"/>
+  <ellipse cx="113" cy="107" rx="4" ry="5" fill="#212F3D"/>
+  <path d="M91 123 Q100 129 109 123" stroke="#6D4C41" stroke-width="2" fill="none" stroke-linecap="round"/>
+</svg>

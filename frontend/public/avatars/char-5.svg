@@ -1,0 +1,18 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Chris — Safety officer">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="200" y2="200"><stop stop-color="#1B2631"/><stop offset="1" stop-color="#117A65"/></linearGradient>
+  </defs>
+  <rect width="200" height="200" rx="36" fill="url(#bg)"/>
+  <ellipse cx="100" cy="178" rx="72" ry="28" fill="#000" opacity="0.25"/>
+  <path d="M38 200 L162 200 L146 132 Q100 118 54 132 Z" fill="#F1C40F"/>
+  <path d="M54 132 L146 132 L138 200 L62 200 Z" fill="#F39C12" opacity="0.35"/>
+  <rect x="70" y="148" width="60" height="14" rx="3" fill="#E74C3C"/>
+  <text x="100" y="159" text-anchor="middle" fill="#FFF" font-size="9" font-family="Arial,sans-serif" font-weight="bold">SAFE</text>
+  <ellipse cx="100" cy="108" rx="38" ry="42" fill="#8D5524"/>
+  <ellipse cx="100" cy="116" rx="32" ry="34" fill="#A66E2E"/>
+  <path d="M62 88 Q100 52 138 88 L132 72 Q100 44 68 72 Z" fill="#FFF"/>
+  <rect x="54" y="82" width="92" height="10" rx="4" fill="#E74C3C"/>
+  <ellipse cx="86" cy="108" rx="5" ry="6" fill="#212121"/>
+  <ellipse cx="114" cy="108" rx="5" ry="6" fill="#212121"/>
+  <path d="M88 122 Q100 130 112 122" stroke="#5D4037" stroke-width="2" fill="none" stroke-linecap="round"/>
+</svg>

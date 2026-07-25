@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-label="AI planning">
+  <defs>
+    <linearGradient id="bg2" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#154360"/>
+      <stop offset="100%" stop-color="#1F618D"/>
+    </linearGradient>
+  </defs>
+  <rect width="1600" height="900" fill="url(#bg2)"/>
+  <circle cx="1200" cy="260" r="140" fill="#E67E22" opacity="0.25"/>
+  <path d="M200 650 L400 450 L600 520 L800 380 L1000 480 L1200 350 L1400 420" stroke="#F39C12" stroke-width="6" fill="none"/>
+  <rect x="160" y="200" width="420" height="240" rx="16" fill="#fff" opacity="0.12"/>
+  <text x="200" y="280" fill="#fff" font-family="monospace" font-size="22">COST � SCHEDULE � RISK</text>
+  <text x="80" y="120" fill="#fff" font-family="system-ui,sans-serif" font-size="48" font-weight="700">AI Planning Engine</text>
+  <text x="80" y="180" fill="#AED6F1" font-family="system-ui,sans-serif" font-size="28">Estimates tied to your exact model</text>
+</svg>

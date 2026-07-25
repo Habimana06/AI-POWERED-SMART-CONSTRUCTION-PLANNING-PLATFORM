@@ -1,0 +1,17 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Sam — Foreman">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="200" y2="200"><stop stop-color="#17202A"/><stop offset="1" stop-color="#2C3E50"/></linearGradient>
+  </defs>
+  <rect width="200" height="200" rx="36" fill="url(#bg)"/>
+  <ellipse cx="100" cy="178" rx="72" ry="28" fill="#000" opacity="0.25"/>
+  <path d="M40 200 L160 200 L148 130 Q100 116 52 130 Z" fill="#27AE60"/>
+  <path d="M52 130 L148 130 L140 200 L60 200 Z" fill="#1E8449" opacity="0.45"/>
+  <ellipse cx="100" cy="108" rx="40" ry="42" fill="#5D4037"/>
+  <ellipse cx="100" cy="116" rx="34" ry="35" fill="#795548"/>
+  <path d="M58 86 Q100 48 142 86 L136 70 Q100 40 64 70 Z" fill="#F39C12"/>
+  <rect x="54" y="84" width="92" height="12" rx="4" fill="#E67E22"/>
+  <ellipse cx="85" cy="106" rx="5" ry="6" fill="#212121"/>
+  <ellipse cx="115" cy="106" rx="5" ry="6" fill="#212121"/>
+  <path d="M88 126 Q100 136 112 126" stroke="#3E2723" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  <path d="M70 100 L130 100" stroke="#3E2723" stroke-width="3" stroke-linecap="round" opacity="0.5"/>
+</svg>

@@ -1,5 +1,8 @@
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import {
+  addPdfCover, addSectionHeading, applyPdfFooter, BRAND,
+} from './reportDesign';
 
 function slug(name) {
   return String(name || 'report').replace(/[^\w-]+/g, '-').slice(0, 40);
@@ -36,35 +39,40 @@ export function exportContractorReportCsv(projects) {
 
 export function exportContractorReportPdf(projects) {
   const doc = new jsPDF();
-  doc.setFontSize(16);
-  doc.text('Contractor — My Reports', 14, 18);
-  doc.setFontSize(10);
-  doc.text(`Generated ${new Date().toLocaleString()}`, 14, 26);
 
-  let y = 34;
+  let y = addPdfCover(doc, {
+    role: 'contractor',
+    title: 'My assignments — field report',
+    subtitle: 'Progress, tasks, materials & work logs',
+    lines: [
+      `${projects.length} project(s) · Generated ${new Date().toLocaleString()}`,
+    ],
+  });
+
   projects.forEach((p, i) => {
-    if (y > 250) {
+    if (y > 230) {
       doc.addPage();
       y = 20;
     }
-    doc.setFontSize(12);
-    doc.text(`${i + 1}. ${p.projectName} — ${p.progressPercentage}%`, 14, y);
-    y += 6;
+    y = addSectionHeading(doc, y, `${i + 1}. ${p.projectName} — ${p.progressPercentage}% complete`);
     autoTable(doc, {
       startY: y,
       head: [['Metric', 'Value']],
       body: [
-        ['Work logs', String(p.workLogCount)],
+        ['Overall progress', `${p.progressPercentage}%`],
+        ['Work logs submitted', String(p.workLogCount)],
         ...(p.taskStats || []).map((s) => [`Tasks (${s.status})`, String(s.c)]),
         ...(p.materialTotals || []).map((m) => [`Materials (${m.status})`, `${Number(m.total).toLocaleString()} FRw`]),
       ],
       theme: 'grid',
       styles: { fontSize: 9 },
+      headStyles: { fillColor: BRAND.steel },
       margin: { left: 14, right: 14 },
     });
-    y = doc.lastAutoTable.finalY + 12;
+    y = doc.lastAutoTable.finalY + 14;
   });
 
+  applyPdfFooter(doc, 'BuildPlan AI · Contractor');
   doc.save(`contractor-reports-${slug(projects[0]?.projectName)}.pdf`);
 }
 

@@ -18,6 +18,7 @@ import {
   exportFullHousePdf,
   exportFullHousePpt,
   exportFullProjectReportPdf,
+  svgToPngDataUrl,
 } from '../../utils/designDocumentExport';
 import { getLockedProjectFields } from '../../utils/projectMetadata';
 
@@ -81,6 +82,7 @@ export default function BlueprintViewer() {
   });
 
   const fullHouseExportBase = () => ({
+    role: 'pm',
     projectName: activeProject?.name,
     houseImageUrl: resolveHouseImageUrl(),
     width,
@@ -92,14 +94,18 @@ export default function BlueprintViewer() {
     costSummary: costData.summary,
     budget: activeProject?.budget || 0,
     location: activeProject?.location,
+    lockedFields,
+    status: activeProject?.status,
+    progress: activeProject?.progressPercentage ?? activeProject?.progress_percentage,
+    description: activeProject?.description || lockedFields.requirements,
+    startDate: lockedFields.startDate,
+    endDate: lockedFields.endDate,
   });
 
   const fullReportBase = () => ({
     ...fullHouseExportBase(),
     svgEl: floorPlanRef.current,
     activeFloor: planFloor,
-    lockedFields,
-    materialRows: costData.rows,
   });
 
   return (
@@ -151,7 +157,13 @@ export default function BlueprintViewer() {
             pdfLabel="Download Full Project Report (PDF)"
             pptLabel="Download Presentation PPT"
             onExportPdf={() => exportFullProjectReportPdf(fullReportBase())}
-            onExportPpt={() => exportFullHousePpt(fullHouseExportBase())}
+            onExportPpt={async () => {
+              let floorPlanPng = null;
+              try {
+                if (floorPlanRef.current) floorPlanPng = await svgToPngDataUrl(floorPlanRef.current);
+              } catch { /* plan optional */ }
+              await exportFullHousePpt({ ...fullHouseExportBase(), floorPlanPng });
+            }}
           />
 
           {outputView === 'floor-plan' && (
@@ -223,7 +235,13 @@ export default function BlueprintViewer() {
                   pdfLabel="Download Presentation PDF"
                   pptLabel="Download Presentation PPT"
                   onExportPdf={() => exportFullHousePdf(fullHouseExportBase())}
-                  onExportPpt={() => exportFullHousePpt(fullHouseExportBase())}
+                  onExportPpt={async () => {
+                    let floorPlanPng = null;
+                    try {
+                      if (floorPlanRef.current) floorPlanPng = await svgToPngDataUrl(floorPlanRef.current);
+                    } catch { /* optional */ }
+                    await exportFullHousePpt({ ...fullHouseExportBase(), floorPlanPng });
+                  }}
                 />
                 <AIHouseRender
                   specs={specs}

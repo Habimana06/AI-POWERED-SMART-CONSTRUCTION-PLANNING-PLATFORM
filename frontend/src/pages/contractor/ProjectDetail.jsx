@@ -5,7 +5,7 @@ import toast from 'react-hot-toast';
 import { projectsAPI } from '../../services/api';
 import { parseDesignSpecifications } from '../../utils/buildingAssets';
 import { getLockedProjectFields } from '../../utils/projectMetadata';
-import { buildCostSummary, exportCostEstimationPdf, exportReportPdf } from '../../utils/designDocumentExport';
+import { buildCostSummary, exportRoleReportPdf, exportCostEstimationPdf } from '../../utils/designDocumentExport';
 import { formatCurrency, formatDate, formatPercent } from '../../utils/helpers';
 import PageHeader, { StatusBadge, ProgressBar } from '../../components/PageHeader';
 import DashboardPage from '../../components/DashboardPage';
@@ -70,13 +70,25 @@ export default function ContractorProjectDetail() {
       buildingType: project?.buildingType || project?.projectType,
       budget: project?.budget,
     });
-    exportReportPdf({
+    exportRoleReportPdf({
+      role: 'contractor',
       title: `${project.name} — Contractor report`,
       projectName: project.name,
       reportType: 'assignment',
       createdAt: new Date().toISOString(),
       summary: `Progress ${project.progressPercentage || 0}% · Tasks ${tasks.length} · Materials ${materials.length}`,
-      content: `Schedule tasks:\n${tasks.map((t) => `- ${t.title} (${t.status})`).join('\n') || 'None'}\n\nMaterial lines:\n${rows.slice(0, 12).map((r) => `- ${r.material}: ${r.quantity} ${r.unit}`).join('\n')}`,
+      content: {
+        scheduleTasks: tasks.map((t) => ({ title: t.title, status: t.status })),
+        materialPreview: rows.slice(0, 12).map((r) => ({ material: r.material, qty: r.quantity, unit: r.unit })),
+      },
+      projectMeta: {
+        progress: project.progressPercentage,
+        workLogCount: project.workLogCount,
+        taskStats: [
+          { status: 'pending', c: tasks.filter((t) => t.status === 'pending').length },
+          { status: 'completed', c: tasks.filter((t) => t.status === 'completed').length },
+        ],
+      },
     });
     toast.success('Project report PDF downloaded');
   };

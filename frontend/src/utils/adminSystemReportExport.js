@@ -1,5 +1,8 @@
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import {
+  addPdfCover, addSectionHeading, applyPdfFooter, BRAND,
+} from './reportDesign';
 
 export function exportSystemReportCsv(payload) {
   const { range, summary, activityChart, projectsChart } = payload;
@@ -33,16 +36,24 @@ export function exportSystemReportCsv(payload) {
 }
 
 export function exportSystemReportPdf(payload) {
-  const { range, summary, activityChart } = payload;
+  const {
+    range, summary, activityChart, projectsChart, usersByRole, messagesChart, workLogsChart,
+  } = payload;
   const doc = new jsPDF();
-  doc.setFontSize(16);
-  doc.text('BuildPlan AI — System Performance', 14, 18);
-  doc.setFontSize(10);
-  doc.text(`Range: ${range?.startDate || '—'} to ${range?.endDate || '—'}`, 14, 26);
-  doc.text(`Generated ${new Date().toLocaleString()}`, 14, 32);
 
+  let y = addPdfCover(doc, {
+    role: 'admin',
+    title: 'System performance report',
+    subtitle: 'Platform analytics & operational metrics',
+    lines: [
+      `Range: ${range?.startDate || '—'} to ${range?.endDate || '—'}`,
+      `Generated ${new Date().toLocaleString()}`,
+    ],
+  });
+
+  y = addSectionHeading(doc, y, 'Key metrics');
   autoTable(doc, {
-    startY: 40,
+    startY: y,
     head: [['Metric', 'Count']],
     body: [
       ['Audit events', String(summary?.auditEvents ?? 0)],
@@ -52,16 +63,74 @@ export function exportSystemReportPdf(payload) {
       ['Active users', String(summary?.activeUsers ?? 0)],
       ['Active projects', String(summary?.activeProjects ?? 0)],
     ],
+    headStyles: { fillColor: BRAND.steel },
+    margin: { left: 14, right: 14 },
   });
+  y = doc.lastAutoTable.finalY + 12;
+
+  if (usersByRole?.length) {
+    y = addSectionHeading(doc, y, 'Users by role');
+    autoTable(doc, {
+      startY: y,
+      head: [['Role', 'Users']],
+      body: usersByRole.map((r) => [r.name || r.role, String(r.count)]),
+      headStyles: { fillColor: BRAND.steel },
+      margin: { left: 14, right: 14 },
+    });
+    y = doc.lastAutoTable.finalY + 12;
+  }
 
   if (activityChart?.length) {
+    if (y > 240) { doc.addPage(); y = 20; }
+    y = addSectionHeading(doc, y, 'Audit activity (daily)');
     autoTable(doc, {
-      startY: doc.lastAutoTable.finalY + 8,
-      head: [['Day', 'Audit events']],
-      body: activityChart.slice(0, 20).map((r) => [r.day, String(r.events)]),
+      startY: y,
+      head: [['Day', 'Events']],
+      body: activityChart.slice(0, 25).map((r) => [r.day, String(r.events)]),
+      headStyles: { fillColor: BRAND.steel },
+      margin: { left: 14, right: 14 },
+    });
+    y = doc.lastAutoTable.finalY + 12;
+  }
+
+  if (projectsChart?.length) {
+    if (y > 240) { doc.addPage(); y = 20; }
+    y = addSectionHeading(doc, y, 'New projects (daily)');
+    autoTable(doc, {
+      startY: y,
+      head: [['Day', 'Projects created']],
+      body: projectsChart.slice(0, 25).map((r) => [r.day, String(r.projects)]),
+      headStyles: { fillColor: BRAND.steel },
+      margin: { left: 14, right: 14 },
+    });
+    y = doc.lastAutoTable.finalY + 12;
+  }
+
+  if (messagesChart?.length) {
+    if (y > 240) { doc.addPage(); y = 20; }
+    y = addSectionHeading(doc, y, 'Messages sent (daily)');
+    autoTable(doc, {
+      startY: y,
+      head: [['Day', 'Messages']],
+      body: messagesChart.slice(0, 20).map((r) => [r.day, String(r.messages)]),
+      headStyles: { fillColor: BRAND.steel },
+      margin: { left: 14, right: 14 },
     });
   }
 
+  if (workLogsChart?.length) {
+    if (y > 240) { doc.addPage(); y = 20; }
+    y = addSectionHeading(doc, y, 'Work logs (daily)');
+    autoTable(doc, {
+      startY: y,
+      head: [['Day', 'Logs']],
+      body: workLogsChart.slice(0, 20).map((r) => [r.day, String(r.logs)]),
+      headStyles: { fillColor: BRAND.steel },
+      margin: { left: 14, right: 14 },
+    });
+  }
+
+  applyPdfFooter(doc, 'BuildPlan AI · Admin');
   doc.save(`system-report-${range?.endDate || 'export'}.pdf`);
 }
 

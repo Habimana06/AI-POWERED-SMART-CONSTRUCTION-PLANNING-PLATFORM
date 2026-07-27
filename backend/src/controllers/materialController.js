@@ -69,7 +69,7 @@ const requestMaterial = async (req, res, next) => {
       [projectId, req.user.id, name, description, category, quantity, unit, unitCost, totalCost, supplier, deliveryDate, mergedNotes]
     );
 
-    if (project.rows[0]?.created_by) {
+    if (result.rows[0]?.created_by) {
       await createNotification({
         userId: project.rows[0].created_by,
         title: 'Material Request',
@@ -77,6 +77,7 @@ const requestMaterial = async (req, res, next) => {
         type: 'info',
         referenceType: 'material',
         referenceId: result.rows[0].id,
+        alsoNotifyAdmins: true,
       });
     }
 

@@ -3,11 +3,22 @@ const env = require('../config/env');
 
 let transporter = null;
 
+function isSmtpConfigured() {
+  return (
+    env.smtp.enabled
+    && Boolean(env.smtp.user)
+    && Boolean(env.smtp.pass)
+    && Boolean(env.smtp.host)
+  );
+}
+
 const getTransporter = () => {
   if (transporter) return transporter;
 
-  if (!env.smtp.user || !env.smtp.pass) {
-    console.warn('SMTP not configured. Emails will be logged to console.');
+  if (!isSmtpConfigured()) {
+    console.warn(
+      '[Email] SMTP not configured — set MAIL_USER/SMTP_USER and MAIL_PASSWORD/SMTP_PASS in backend/.env (or root .env).',
+    );
     return null;
   }
 
@@ -16,12 +27,13 @@ const getTransporter = () => {
     port: env.smtp.port,
     secure: env.smtp.port === 465,
     auth: { user: env.smtp.user, pass: env.smtp.pass },
+    ...(env.smtp.port === 587 ? { requireTLS: true } : {}),
   });
 
   return transporter;
 };
 
-const sendEmail = async ({ to, subject, html, text, bcc }) => {
+const sendEmail = async ({ to, subject, html, text, bcc, requireDelivery = false }) => {
   const mailOptions = {
     from: `"${env.smtp.fromName}" <${env.smtp.from || env.smtp.user}>`,
     to,
@@ -33,19 +45,33 @@ const sendEmail = async ({ to, subject, html, text, bcc }) => {
 
   const transport = getTransporter();
   if (!transport) {
-    console.log('[Email Mock]', { to, subject });
-    return { success: true, mock: true, messageId: `mock-${Date.now()}` };
+    const errMsg = 'SMTP is not configured on the server';
+    console.error('[Email Mock — not sent]', { to, subject });
+    if (requireDelivery) {
+      const err = new Error(errMsg);
+      err.code = 'SMTP_NOT_CONFIGURED';
+      throw err;
+    }
+    return { success: false, mock: true, messageId: null };
   }
 
-  const info = await transport.sendMail(mailOptions);
-  return { success: true, messageId: info.messageId };
+  try {
+    const info = await transport.sendMail(mailOptions);
+    console.log('[Email sent]', { to, subject, messageId: info.messageId });
+    return { success: true, messageId: info.messageId };
+  } catch (err) {
+    console.error('[Email failed]', { to, subject, error: err.message });
+    if (requireDelivery) throw err;
+    return { success: false, error: err.message };
+  }
 };
 
 const sendVerificationEmail = async (email, token) => {
-  const verifyUrl = `${env.frontendUrl}/verify-email?token=${token}`;
+  const verifyUrl = `${env.frontendUrl.split(',')[0].trim()}/verify-email?token=${token}`;
   return sendEmail({
     to: email,
     subject: `Verify your ${env.appName} account`,
+    requireDelivery: true,
     html: `
       <h2>Welcome to ${env.appName}!</h2>
       <p>Please verify your email address by clicking the link below:</p>
@@ -56,10 +82,11 @@ const sendVerificationEmail = async (email, token) => {
 };
 
 const sendPasswordResetEmail = async (email, token) => {
-  const resetUrl = `${env.frontendUrl.split(',')[0]}/reset-password?token=${token}`;
+  const resetUrl = `${env.frontendUrl.split(',')[0].trim()}/reset-password?token=${token}`;
   return sendEmail({
     to: email,
     subject: `Reset your ${env.appName} password`,
+    requireDelivery: true,
     html: `
       <h2>Password Reset Request</h2>
       <p>Click the link below to reset your password:</p>
@@ -73,6 +100,7 @@ const sendPasswordResetCodeEmail = async (email, code) => {
   return sendEmail({
     to: email,
     subject: `${env.appName} password reset code`,
+    requireDelivery: true,
     html: `
       <h2>Password reset verification</h2>
       <p>Use this code on the forgot password page (valid 15 minutes):</p>
@@ -84,10 +112,11 @@ const sendPasswordResetCodeEmail = async (email, code) => {
 };
 
 const sendNotificationEmail = async (email, title, message) => {
+  if (!email) return { success: false, skipped: true };
   return sendEmail({
     to: email,
     subject: `${env.appName}: ${title}`,
-    html: `<h3>${title}</h3><p>${message}</p>`,
+    html: `<h3>${title}</h3><p>${message.replace(/\n/g, '<br>')}</p>`,
   });
 };
 
@@ -96,6 +125,7 @@ const sendContactReplyEmail = async ({ to, name, subject, originalMessage, reply
   return sendEmail({
     to,
     subject: `Re: ${safeSubject} — ${env.appName}`,
+    requireDelivery: true,
     html: `
       <p>Hi ${name || 'there'},</p>
       <p>Thank you for contacting ${env.appName}. Here is our reply:</p>
@@ -111,6 +141,7 @@ const sendContactReplyEmail = async ({ to, name, subject, originalMessage, reply
 };
 
 module.exports = {
+  isSmtpConfigured,
   sendEmail,
   sendVerificationEmail,
   sendPasswordResetEmail,

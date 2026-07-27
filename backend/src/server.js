@@ -10,6 +10,7 @@ const routes = require('./routes');
 const { pool } = require('./config/database');
 const { notFound, errorHandler } = require('./middleware/errorHandler');
 const notificationService = require('./services/notificationService');
+const { isSmtpConfigured } = require('./services/emailService');
 
 const app = express();
 const server = http.createServer(app);
@@ -98,6 +99,7 @@ const start = async () => {
   server.listen(env.port, () => {
     console.log(`${env.appName} API running on port ${env.port}`);
     console.log(`Environment: ${env.nodeEnv}`);
+    console.log(`Email (SMTP): ${isSmtpConfigured() ? 'configured' : 'NOT configured — set SMTP_USER/SMTP_PASS in .env'}`);
     console.log(`Health check: http://localhost:${env.port}/api/health`);
   });
 };

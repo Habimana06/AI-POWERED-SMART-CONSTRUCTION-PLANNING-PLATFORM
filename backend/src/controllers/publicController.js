@@ -1,4 +1,6 @@
 const { query } = require('../config/database');
+const env = require('../config/env');
+const { sendNotificationEmail } = require('../services/emailService');
 
 function parseSpecs(raw) {
   try {
@@ -160,6 +162,15 @@ const submitContact = async (req, res, next) => {
       [senderName, senderEmail, senderCompany, msgSubject.slice(0, 255), msgBody.slice(0, 10000)],
     );
 
+    const adminEmail = env.notifications.adminEmail;
+    if (adminEmail) {
+      sendNotificationEmail(
+        adminEmail,
+        'New contact form message',
+        `From: ${senderName} <${senderEmail}>\nSubject: ${msgSubject}\n\n${msgBody}`,
+      ).catch((e) => console.error('Contact admin email failed:', e.message));
+    }
+
     res.status(201).json({
       success: true,
       message: 'Message received! We will reply to your email within 24 hours.',
@@ -168,8 +179,6 @@ const submitContact = async (req, res, next) => {
     next(err);
   }
 };
-
-const env = require('../config/env');
 
 const getContactInfo = async (_req, res, next) => {
   try {

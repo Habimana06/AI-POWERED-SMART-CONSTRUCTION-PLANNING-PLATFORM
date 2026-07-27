@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import toast from 'react-hot-toast';
-import { Shield, Upload, Mail, MessageSquare, HardHat, BadgeCheck } from 'lucide-react';
+import { Shield, Upload, Mail, HardHat, BadgeCheck } from 'lucide-react';
 import { authAPI, profileAPI, contractorAPI } from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
 import { getInitials, getFullName } from '../../utils/helpers';
@@ -44,7 +44,6 @@ export default function Profile() {
   const [disableCode, setDisableCode] = useState('');
   const [disablePassword, setDisablePassword] = useState('');
   const [notifyEmail, setNotifyEmail] = useState(true);
-  const [notifySms, setNotifySms] = useState(false);
   const [contractorForm, setContractorForm] = useState({
     specialty: '', licenseNumber: '', experienceYears: 0, hourlyRate: 0, availability: 'available', bio: '',
   });
@@ -103,7 +102,6 @@ export default function Profile() {
     const u = profileData?.user || profileData;
     if (u?.totpEnabled != null) setTotpEnabled(!!u.totpEnabled);
     if (u?.notifyEmail != null) setNotifyEmail(!!u.notifyEmail);
-    if (u?.notifySms != null) setNotifySms(!!u.notifySms);
   }, [profileData]);
 
   useEffect(() => {
@@ -207,9 +205,12 @@ export default function Profile() {
   });
 
   const notifyMutation = useMutation({
-    mutationFn: profileAPI.updateNotifications,
-    onSuccess: () => toast.success('Notification preferences saved'),
-    onError: () => toast.error('Could not save preferences'),
+    mutationFn: () => profileAPI.updateNotifications({ notifyEmail }),
+    onSuccess: (data) => {
+      toast.success(data?.message || 'Notification preferences saved');
+      updateUser({ notifyEmail, notifySms: false });
+    },
+    onError: (err) => toast.error(err.response?.data?.message || 'Could not save preferences'),
   });
 
   const contractorMutation = useMutation({
@@ -233,8 +234,7 @@ export default function Profile() {
   };
 
   const saveNotifications = () => {
-    notifyMutation.mutate({ notifyEmail, notifySms });
-    updateUser({ notifyEmail, notifySms });
+    notifyMutation.mutate();
   };
 
   return (
@@ -464,22 +464,22 @@ export default function Profile() {
 
           {tab === 'notifications' && (
             <div className="space-y-4">
-              <p className="text-sm text-concrete">Choose how you want to hear about assignments, approvals, progress, and site alerts.</p>
+              <p className="text-sm text-concrete">
+                Alerts are sent to <strong className="text-steel">{user?.email}</strong> when email notifications are enabled.
+              </p>
               <label className="flex items-start gap-3 rounded-xl border border-steel-100 p-4 cursor-pointer">
                 <Mail className="h-5 w-5 text-primary mt-0.5" />
                 <div className="flex-1">
                   <p className="font-semibold text-steel">Email notifications</p>
-                  <p className="text-xs text-concrete">{user?.role === 'contractor' ? 'New assignments, approved materials, issue updates' : 'New assignments, PM alerts, progress summaries'}</p>
+                  <p className="text-xs text-concrete">
+                    {user?.role === 'contractor'
+                      ? 'Assignments, material approvals, issue updates, and messages'
+                      : user?.role === 'admin'
+                        ? 'Platform activity, contact messages, and team alerts'
+                        : 'Assignments, contractor activity, progress, and messages'}
+                  </p>
                 </div>
                 <input type="checkbox" className="h-5 w-5 accent-primary" checked={notifyEmail} onChange={(e) => setNotifyEmail(e.target.checked)} />
-              </label>
-              <label className="flex items-start gap-3 rounded-xl border border-steel-100 p-4 cursor-pointer">
-                <MessageSquare className="h-5 w-5 text-primary mt-0.5" />
-                <div className="flex-1">
-                  <p className="font-semibold text-steel">SMS notifications</p>
-                  <p className="text-xs text-concrete">Urgent site issues and approval requests (requires phone on profile)</p>
-                </div>
-                <input type="checkbox" className="h-5 w-5 accent-primary" checked={notifySms} onChange={(e) => setNotifySms(e.target.checked)} />
               </label>
               <button type="button" className="btn-primary" onClick={saveNotifications} disabled={notifyMutation.isPending}>
                 Save notification preferences

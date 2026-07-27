@@ -1,7 +1,6 @@
 const { query } = require('../config/database');
 const env = require('../config/env');
 const { sendNotificationEmail } = require('./emailService');
-const { sendSms } = require('./smsService');
 
 let io = null;
 
@@ -9,9 +8,14 @@ const init = (socketIo) => {
   io = socketIo;
 };
 
+function prefEmailEnabled(value) {
+  if (value === null || value === undefined) return true;
+  return value === 1 || value === true || value === '1';
+}
+
 async function loadUserDeliveryPrefs(userId) {
   const result = await query(
-    `SELECT u.email, u.phone, COALESCE(us.notify_email, 1) AS notify_email, COALESCE(us.notify_sms, 0) AS notify_sms
+    `SELECT u.email, u.first_name, u.last_name, COALESCE(us.notify_email, 1) AS notify_email
      FROM users u
      LEFT JOIN user_security us ON us.user_id = u.id
      WHERE u.id = $1`,
@@ -20,39 +24,41 @@ async function loadUserDeliveryPrefs(userId) {
   return result.rows[0] || null;
 }
 
-async function deliverNotificationChannels(userId, title, message) {
+async function loadActiveAdminUserIds() {
+  const result = await query(
+    `SELECT u.id, u.email FROM users u
+     JOIN roles r ON r.id = u.role_id
+     WHERE r.name = 'admin' AND (u.is_active = 1 OR u.is_active = TRUE)`,
+  );
+  return result.rows || [];
+}
+
+async function deliverNotificationChannels(userId, title, message, { adminCopy = true } = {}) {
   const user = await loadUserDeliveryPrefs(userId);
   if (!user) return;
 
-  const emailOn = user.notify_email === 1 || user.notify_email === true;
-  const smsOn = env.sms.enabled && (user.notify_sms === 1 || user.notify_sms === true);
-
+  const emailOn = prefEmailEnabled(user.notify_email);
   const tasks = [];
 
   if (emailOn && user.email) {
     tasks.push(
-      sendNotificationEmail(user.email, title, message).catch((err) =>
-        console.error('User email notification failed:', err.message),
-      ),
+      sendNotificationEmail(user.email, title, message).then((res) => {
+        if (res?.mock || res?.success === false) {
+          console.error(`Email notification not delivered to ${user.email} (check SMTP config)`);
+        }
+      }),
     );
   }
 
-  if (smsOn && user.phone) {
-    tasks.push(
-      sendSms(user.phone, `${title}: ${message}`.slice(0, 320)).catch((err) =>
-        console.error('SMS notification failed:', err.message),
-      ),
-    );
-  }
-
-  const adminEmail = env.notifications.adminEmail;
-  if (adminEmail) {
+  const adminEmail = (env.notifications.adminEmail || '').trim().toLowerCase();
+  const recipientEmail = (user.email || '').trim().toLowerCase();
+  if (adminCopy && adminEmail && adminEmail !== recipientEmail) {
     tasks.push(
       sendNotificationEmail(
-        adminEmail,
+        env.notifications.adminEmail,
         `[Admin copy] ${title}`,
-        `User ID: ${userId}\n\n${message}`,
-      ).catch((err) => console.error('Admin notification email failed:', err.message)),
+        `${user.first_name || ''} ${user.last_name || ''} (${user.email || userId})\n\n${message}`,
+      ),
     );
   }
 
@@ -60,7 +66,16 @@ async function deliverNotificationChannels(userId, title, message) {
 }
 
 const createNotification = async ({
-  userId, title, message, type = 'info', category = 'general', referenceType = null, referenceId = null, metadata = {},
+  userId,
+  title,
+  message,
+  type = 'info',
+  category = 'general',
+  referenceType = null,
+  referenceId = null,
+  metadata = {},
+  adminEmailCopy = true,
+  alsoNotifyAdmins = false,
 }) => {
   const result = await query(
     `INSERT INTO notifications (user_id, title, message, type, category, reference_type, reference_id, metadata)
@@ -71,9 +86,32 @@ const createNotification = async ({
   const notification = formatNotification(result.rows[0]);
   emitToUser(userId, 'notification', notification);
 
-  deliverNotificationChannels(userId, title, message).catch((err) =>
+  deliverNotificationChannels(userId, title, message, { adminCopy: adminEmailCopy }).catch((err) =>
     console.error('Notification delivery failed:', err.message),
   );
+
+  if (alsoNotifyAdmins) {
+    const admins = await loadActiveAdminUserIds();
+    for (const admin of admins) {
+      if (admin.id === userId) continue;
+      const adminResult = await query(
+        `INSERT INTO notifications (user_id, title, message, type, category, reference_type, reference_id, metadata)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
+        [
+          admin.id,
+          title,
+          message,
+          type,
+          category,
+          referenceType,
+          referenceId,
+          JSON.stringify(metadata),
+        ],
+      );
+      emitToUser(admin.id, 'notification', formatNotification(adminResult.rows[0]));
+      deliverNotificationChannels(admin.id, title, message, { adminCopy: false }).catch(() => {});
+    }
+  }
 
   return notification;
 };
@@ -123,4 +161,5 @@ module.exports = {
   broadcast,
   notifyAndEmail,
   formatNotification,
+  deliverNotificationChannels,
 };

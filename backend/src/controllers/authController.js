@@ -21,7 +21,7 @@ async function auditAuthAttempt(req, { userId = null, email, action, reason, ext
     req,
   );
 }
-const { sendVerificationEmail, sendPasswordResetEmail, sendPasswordResetCodeEmail } = require('../services/emailService');
+const { sendVerificationEmail, sendPasswordResetEmail, sendPasswordResetCodeEmail, sendNotificationEmail } = require('../services/emailService');
 const { generateSecret, verifyToken, keyUri, qrDataUrl } = require('../services/totpService');
 const { AppError } = require('../middleware/errorHandler');
 
@@ -295,6 +295,9 @@ const forgotPassword = async (req, res, next) => {
 
     res.json({ success: true, message: 'Verification code sent to your email.' });
   } catch (err) {
+    if (err.code === 'SMTP_NOT_CONFIGURED') {
+      return next(new AppError('Could not send reset code — configure SMTP_USER and SMTP_PASS in backend/.env', 503));
+    }
     next(err);
   }
 };
@@ -453,7 +456,7 @@ const getProfile = async (req, res, next) => {
           ...user,
           totpEnabled: !!sec?.totp_enabled,
           notifyEmail: sec ? sec.notify_email !== 0 : true,
-          notifySms: !!sec?.notify_sms,
+          notifySms: false,
         },
         contractor,
       },
@@ -590,13 +593,16 @@ const disable2FA = async (req, res, next) => {
 
 const updateNotificationPrefs = async (req, res, next) => {
   try {
-    const { notifyEmail, notifySms } = req.body;
+    const notifyEmail = req.body?.notifyEmail !== false;
+    const emailRow = await query('SELECT email, first_name FROM users WHERE id = $1', [req.user.id]);
+    const userEmail = emailRow.rows[0]?.email;
+
     try {
       await query(
         `INSERT INTO user_security (user_id, notify_email, notify_sms)
-         VALUES ($1, $2, $3)
-         ON DUPLICATE KEY UPDATE notify_email = VALUES(notify_email), notify_sms = VALUES(notify_sms), updated_at = NOW()`,
-        [req.user.id, notifyEmail !== false ? 1 : 0, notifySms ? 1 : 0],
+         VALUES ($1, $2, 0)
+         ON DUPLICATE KEY UPDATE notify_email = VALUES(notify_email), notify_sms = 0, updated_at = NOW()`,
+        [req.user.id, notifyEmail ? 1 : 0],
       );
     } catch (dbErr) {
       if (dbErr.code === 'ER_NO_SUCH_TABLE') {
@@ -604,13 +610,31 @@ const updateNotificationPrefs = async (req, res, next) => {
       }
       throw dbErr;
     }
+
+    if (notifyEmail && userEmail) {
+      await sendNotificationEmail(
+        userEmail,
+        'Email notifications enabled',
+        `Hi ${emailRow.rows[0]?.first_name || 'there'},\n\nYou will receive ${env.appName} alerts at this address when activity happens on your account (assignments, materials, messages, and more).`,
+      );
+    }
+
     await recordUserActivity(req, {
       action: 'UPDATE_NOTIFICATION_PREFS',
       entityType: 'user',
-      details: { notifyEmail, notifySms },
+      details: { notifyEmail },
     });
-    res.json({ success: true, message: 'Notification preferences saved' });
+    res.json({
+      success: true,
+      message: notifyEmail
+        ? 'Email notifications saved — check your inbox for a confirmation message.'
+        : 'Email notifications turned off.',
+      data: { notifyEmail, notifySms: false },
+    });
   } catch (err) {
+    if (err.code === 'SMTP_NOT_CONFIGURED') {
+      return next(new AppError('Preferences saved but email is not configured on the server (SMTP_USER/SMTP_PASS).', 503));
+    }
     next(err);
   }
 };

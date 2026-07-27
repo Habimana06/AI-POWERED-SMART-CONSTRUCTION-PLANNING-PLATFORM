@@ -1,4 +1,8 @@
-require('dotenv').config();
+const path = require('path');
+
+// Root .env (Docker / monorepo) then backend/.env (local overrides)
+require('dotenv').config({ path: path.join(__dirname, '../../../.env') });
+require('dotenv').config({ path: path.join(__dirname, '../../.env') });
 
 const env = {
   appName: process.env.APP_NAME || 'BuildPlan AI',

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Archive, Eye } from 'lucide-react';
+import { Archive, Eye, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { adminAPI } from '../../services/api';
 import { formatCurrency, formatDate } from '../../utils/helpers';
@@ -25,6 +25,21 @@ export default function AdminProjects() {
       queryClient.invalidateQueries({ queryKey: ['admin-projects'] });
     },
   });
+
+  const deleteMutation = useMutation({
+    mutationFn: adminAPI.deleteProject,
+    onSuccess: () => {
+      toast.success('Project deleted permanently');
+      queryClient.invalidateQueries({ queryKey: ['admin-projects'] });
+    },
+    onError: (err) => toast.error(err.response?.data?.message || 'Could not delete project'),
+  });
+
+  const confirmDelete = (row) => {
+    const label = row.name || 'this project';
+    if (!window.confirm(`Delete "${label}" permanently? This cannot be undone.`)) return;
+    deleteMutation.mutate(row.id);
+  };
 
   const projects = data?.projects || [];
   const pagination = data?.pagination;
@@ -58,10 +73,19 @@ export default function AdminProjects() {
             <Eye className="h-4 w-4" />
           </Link>
           {row.status !== 'archived' && (
-            <button type="button" onClick={() => archiveMutation.mutate(row.id)} className="text-concrete" title="Archive">
+            <button type="button" onClick={() => archiveMutation.mutate(row.id)} className="text-concrete hover:text-steel" title="Archive">
               <Archive className="h-4 w-4" />
             </button>
           )}
+          <button
+            type="button"
+            onClick={() => confirmDelete(row)}
+            className="text-red-600 hover:text-red-700"
+            title="Delete permanently"
+            disabled={deleteMutation.isPending}
+          >
+            <Trash2 className="h-4 w-4" />
+          </button>
         </div>
       ),
     },

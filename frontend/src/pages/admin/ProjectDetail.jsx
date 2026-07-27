@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
-  ArrowLeft, MapPin, Calendar, DollarSign, Archive,
+  ArrowLeft, MapPin, Calendar, DollarSign, Archive, Trash2,
   ClipboardList, Package, AlertCircle, HardHat, ScrollText,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -30,6 +30,7 @@ const TABS = [
 
 export default function AdminProjectDetail() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [tab, setTab] = useState('overview');
   const queryClient = useQueryClient();
 
@@ -70,6 +71,16 @@ export default function AdminProjectDetail() {
       queryClient.invalidateQueries({ queryKey: ['admin-project', id] });
       queryClient.invalidateQueries({ queryKey: ['admin-projects'] });
     },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: () => adminAPI.deleteProject(id),
+    onSuccess: () => {
+      toast.success('Project deleted');
+      queryClient.invalidateQueries({ queryKey: ['admin-projects'] });
+      navigate('/admin/projects');
+    },
+    onError: (err) => toast.error(err.response?.data?.message || 'Could not delete project'),
   });
 
   const project = data?.project || data;
@@ -143,11 +154,25 @@ export default function AdminProjectDetail() {
         title={project.name}
         subtitle={project.projectCode || project.location}
         action={
-          project.status !== 'archived' ? (
-            <button onClick={() => archiveMutation.mutate()} disabled={archiveMutation.isPending} className="btn-secondary">
-              <Archive className="h-4 w-4" /> Archive
+          <div className="flex flex-wrap gap-2">
+            {project.status !== 'archived' && (
+              <button onClick={() => archiveMutation.mutate()} disabled={archiveMutation.isPending} className="btn-secondary">
+                <Archive className="h-4 w-4" /> Archive
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={() => {
+                if (window.confirm(`Delete "${project.name}" permanently? This cannot be undone.`)) {
+                  deleteMutation.mutate();
+                }
+              }}
+              disabled={deleteMutation.isPending}
+              className="btn-outline text-red-600 border-red-200 hover:bg-red-50"
+            >
+              <Trash2 className="h-4 w-4" /> Delete
             </button>
-          ) : null
+          </div>
         }
       />
 

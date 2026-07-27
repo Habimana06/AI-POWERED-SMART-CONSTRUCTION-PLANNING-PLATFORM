@@ -164,6 +164,7 @@ function DesignOutputsBody({ project, design, readOnly, showDownloads }) {
             savedAt={savedAt}
             projectId={projectId}
             designId={designId}
+            autoGenerate={!readOnly}
           />
           <p className="text-[10px] text-concrete mt-3">
             {design.name}

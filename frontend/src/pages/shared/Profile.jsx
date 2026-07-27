@@ -465,7 +465,8 @@ export default function Profile() {
           {tab === 'notifications' && (
             <div className="space-y-4">
               <p className="text-sm text-concrete">
-                Alerts are sent to <strong className="text-steel">{user?.email}</strong> when email notifications are enabled.
+                Every alert in the <strong className="text-steel">bell</strong> is also sent to{' '}
+                <strong className="text-steel">{user?.email}</strong> via SMTP when email notifications are on.
               </p>
               <label className="flex items-start gap-3 rounded-xl border border-steel-100 p-4 cursor-pointer">
                 <Mail className="h-5 w-5 text-primary mt-0.5" />

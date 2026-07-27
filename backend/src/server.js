@@ -100,6 +100,7 @@ const start = async () => {
     console.log(`${env.appName} API running on port ${env.port}`);
     console.log(`Environment: ${env.nodeEnv}`);
     console.log(`Email (SMTP): ${isSmtpConfigured() ? 'configured' : 'NOT configured — set SMTP_USER/SMTP_PASS in .env'}`);
+    console.log(`Notifications: bell → email mirror ${env.notifications.mirrorBellEmail ? 'ON' : 'OFF'}`);
     console.log(`Health check: http://localhost:${env.port}/api/health`);
   });
 };

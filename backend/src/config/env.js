@@ -63,6 +63,8 @@ const env = {
       || process.env.MAIL_USER
       || process.env.MAIL_FROM
       || '',
+    /** When true (default), every in-app bell notification also sends SMTP to the user. */
+    mirrorBellEmail: process.env.NOTIFICATION_MIRROR_BELL !== 'false',
   },
 
   sms: {

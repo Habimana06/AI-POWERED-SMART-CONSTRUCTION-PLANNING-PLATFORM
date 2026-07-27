@@ -682,9 +682,14 @@ const generateDesignExterior = async (req, res, next) => {
     }
     const result = await generateExteriorForDesign(projectId, designId, {
       force: req.body?.force === true,
-      preferredProvider: 'pollinations-flux',
+      preferredProvider: req.body?.preferredProvider || 'auto',
     });
-    if (result.error) throw new AppError('Could not generate house image', 502);
+    if (result.error) {
+      throw new AppError(
+        result.message || 'Could not generate house image. Free Pollinations may be rate-limited — retry in a minute or add GEMINI_API_KEY in .env.',
+        503,
+      );
+    }
     await recordAuditEvent(
       {
         userId: req.user.id,

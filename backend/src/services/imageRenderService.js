@@ -20,15 +20,17 @@ function isXaiBillingError(message = '') {
 }
 
 function defaultProviderOrder() {
-  const order = ['pollinations-flux', 'pollinations-turbo'];
+  const order = [];
   if (env.gemini.apiKey) order.push('gemini');
+  order.push('pollinations-turbo', 'pollinations-flux');
   if (env.xai.apiKey) order.push('grok');
   return order;
 }
 
 function resolveProviderOrder(preferredProvider = 'auto') {
   if (preferredProvider && preferredProvider !== 'auto') {
-    return [preferredProvider];
+    const fallbacks = defaultProviderOrder().filter((id) => id !== preferredProvider);
+    return [preferredProvider, ...fallbacks];
   }
   return defaultProviderOrder();
 }

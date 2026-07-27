@@ -31,7 +31,7 @@ function aspectToSize(aspectRatio = '16:9') {
 async function generateImage({ prompt, aspectRatio = '16:9', model = 'flux' }) {
   const size = aspectToSize(aspectRatio);
   const safePrompt = truncatePrompt(prompt, 900);
-  const maxAttempts = 4;
+  const maxAttempts = 5;
   let lastError = null;
 
   for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
@@ -40,7 +40,9 @@ async function generateImage({ prompt, aspectRatio = '16:9', model = 'flux' }) {
       const response = await fetch(url, { signal: AbortSignal.timeout(120_000) });
 
       if (response.status === 429 && attempt < maxAttempts) {
-        await new Promise((r) => setTimeout(r, 18_000 * attempt));
+        const waitMs = 20_000 * attempt;
+        console.warn(`Pollinations ${model} rate limited (429), waiting ${waitMs / 1000}s (attempt ${attempt}/${maxAttempts})`);
+        await new Promise((r) => setTimeout(r, waitMs));
         continue;
       }
 

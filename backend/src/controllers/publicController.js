@@ -1,6 +1,7 @@
 const { query } = require('../config/database');
 const env = require('../config/env');
 const { sendNotificationEmail } = require('../services/emailService');
+const { createNotification, loadActiveAdminUserIds } = require('../services/notificationService');
 
 function parseSpecs(raw) {
   try {
@@ -162,13 +163,29 @@ const submitContact = async (req, res, next) => {
       [senderName, senderEmail, senderCompany, msgSubject.slice(0, 255), msgBody.slice(0, 10000)],
     );
 
-    const adminEmail = env.notifications.adminEmail;
-    if (adminEmail) {
-      sendNotificationEmail(
-        adminEmail,
-        'New contact form message',
-        `From: ${senderName} <${senderEmail}>\nSubject: ${msgSubject}\n\n${msgBody}`,
-      ).catch((e) => console.error('Contact admin email failed:', e.message));
+    const bellTitle = 'New contact form message';
+    const bellMessage = `${msgSubject}\n\nFrom: ${senderName} <${senderEmail}>${senderCompany ? ` · ${senderCompany}` : ''}\n\n${msgBody.slice(0, 2500)}`;
+    try {
+      const admins = await loadActiveAdminUserIds();
+      if (admins.length) {
+        for (const admin of admins) {
+          await createNotification({
+            userId: admin.id,
+            title: bellTitle,
+            message: bellMessage,
+            type: 'info',
+            category: 'contact',
+            adminEmailCopy: false,
+          });
+        }
+      } else {
+        const adminEmail = env.notifications.adminEmail;
+        if (adminEmail) {
+          await sendNotificationEmail(adminEmail, bellTitle, bellMessage);
+        }
+      }
+    } catch (e) {
+      console.error('Contact notification failed:', e.message);
     }
 
     res.status(201).json({

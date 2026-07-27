@@ -123,11 +123,11 @@ async function generateExteriorForDesign(projectId, designId, options = {}) {
     mode: 'exterior',
     aspectRatio: '16:9',
     resolution: '1k',
-    preferredProvider: options.preferredProvider || 'pollinations-flux',
+    preferredProvider: options.preferredProvider || 'auto',
   });
 
   if (!render?.imageDataUri) {
-    return { error: 'generation_failed' };
+    return { error: 'generation_failed', message: render?.message };
   }
 
   const saved = await persistRender(

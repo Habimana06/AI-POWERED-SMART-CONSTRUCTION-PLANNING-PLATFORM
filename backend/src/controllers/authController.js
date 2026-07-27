@@ -99,6 +99,16 @@ const register = async (req, res, next) => {
 
     await sendVerificationEmail(email, verificationToken);
 
+    try {
+      await query(
+        `INSERT INTO user_security (user_id, notify_email, notify_sms) VALUES ($1, 1, 0)
+         ON DUPLICATE KEY UPDATE notify_email = 1, notify_sms = 0`,
+        [result.rows[0].id],
+      );
+    } catch {
+      /* user_security optional until migrate */
+    }
+
     await recordAuditEvent(
       {
         userId: result.rows[0].id,

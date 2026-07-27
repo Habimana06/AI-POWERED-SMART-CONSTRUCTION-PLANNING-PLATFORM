@@ -1,6 +1,6 @@
 const { query } = require('../config/database');
 const env = require('../config/env');
-const { sendNotificationEmail } = require('./emailService');
+const { sendBellNotificationEmail, sendNotificationEmail, isSmtpConfigured } = require('./emailService');
 
 let io = null;
 
@@ -33,21 +33,37 @@ async function loadActiveAdminUserIds() {
   return result.rows || [];
 }
 
-async function deliverNotificationChannels(userId, title, message, { adminCopy = true } = {}) {
+/**
+ * Mirror bell notification to SMTP when enabled (default: every bell → email).
+ */
+async function deliverNotificationChannels(userId, title, message, {
+  adminCopy = true,
+  type = 'info',
+  category = 'general',
+} = {}) {
   const user = await loadUserDeliveryPrefs(userId);
   if (!user) return;
 
   const emailOn = prefEmailEnabled(user.notify_email);
+  const mirrorBell = env.notifications.mirrorBellEmail !== false;
+  const shouldSendUserEmail = Boolean(user.email) && mirrorBell && emailOn;
+
   const tasks = [];
 
-  if (emailOn && user.email) {
+  if (shouldSendUserEmail) {
     tasks.push(
-      sendNotificationEmail(user.email, title, message).then((res) => {
+      sendBellNotificationEmail(user.email, { title, message, type, category }).then((res) => {
         if (res?.mock || res?.success === false) {
-          console.error(`Email notification not delivered to ${user.email} (check SMTP config)`);
+          console.error(
+            `[Notification] Bell mirror email not delivered to ${user.email} — ${res?.error || 'SMTP not configured or send failed'}`,
+          );
         }
       }),
     );
+  } else if (mirrorBell && user.email && !emailOn) {
+    console.log(`[Notification] Email skipped for ${user.email} (notify_email off); bell only.`);
+  } else if (mirrorBell && !isSmtpConfigured()) {
+    console.warn('[Notification] SMTP not configured — bell saved but no email mirror.');
   }
 
   const adminEmail = (env.notifications.adminEmail || '').trim().toLowerCase();
@@ -76,6 +92,7 @@ const createNotification = async ({
   metadata = {},
   adminEmailCopy = true,
   alsoNotifyAdmins = false,
+  skipEmailMirror = false,
 }) => {
   const result = await query(
     `INSERT INTO notifications (user_id, title, message, type, category, reference_type, reference_id, metadata)
@@ -86,9 +103,13 @@ const createNotification = async ({
   const notification = formatNotification(result.rows[0]);
   emitToUser(userId, 'notification', notification);
 
-  deliverNotificationChannels(userId, title, message, { adminCopy: adminEmailCopy }).catch((err) =>
-    console.error('Notification delivery failed:', err.message),
-  );
+  if (!skipEmailMirror) {
+    deliverNotificationChannels(userId, title, message, {
+      adminCopy: adminEmailCopy,
+      type,
+      category,
+    }).catch((err) => console.error('Notification delivery failed:', err.message));
+  }
 
   if (alsoNotifyAdmins) {
     const admins = await loadActiveAdminUserIds();
@@ -109,7 +130,11 @@ const createNotification = async ({
         ],
       );
       emitToUser(admin.id, 'notification', formatNotification(adminResult.rows[0]));
-      deliverNotificationChannels(admin.id, title, message, { adminCopy: false }).catch(() => {});
+      deliverNotificationChannels(admin.id, title, message, {
+        adminCopy: false,
+        type,
+        category,
+      }).catch(() => {});
     }
   }
 
@@ -162,4 +187,5 @@ module.exports = {
   notifyAndEmail,
   formatNotification,
   deliverNotificationChannels,
+  loadActiveAdminUserIds,
 };

@@ -120,6 +120,45 @@ const sendNotificationEmail = async (email, title, message) => {
   });
 };
 
+/** Same content as the in-app bell — branded HTML mirror via SMTP. */
+const sendBellNotificationEmail = async (email, { title, message, type = 'info', category = 'general' }) => {
+  if (!email) return { success: false, skipped: true };
+  const appUrl = env.frontendUrl.split(',')[0].trim();
+  const typeColors = { info: '#3498DB', success: '#27AE60', warning: '#F39C12', error: '#E74C3C' };
+  const accent = typeColors[type] || typeColors.info;
+  const safeTitle = String(title || 'Notification').replace(/</g, '&lt;');
+  const safeBody = String(message || '').replace(/</g, '&lt;').replace(/\n/g, '<br>');
+
+  return sendEmail({
+    to: email,
+    subject: `${env.appName} — ${title}`,
+    text: `${title}\n\n${message}\n\nOpen the app: ${appUrl}`,
+    html: `
+      <div style="font-family:Segoe UI,Arial,sans-serif;max-width:560px;margin:0 auto;">
+        <div style="background:#1E293B;color:#fff;padding:16px 20px;border-radius:8px 8px 0 0;">
+          <p style="margin:0;font-size:12px;color:#FB923C;text-transform:uppercase;letter-spacing:1px;">In-app alert (also in your bell)</p>
+          <h2 style="margin:8px 0 0;font-size:20px;">${safeTitle}</h2>
+        </div>
+        <div style="border:1px solid #E2E8F0;border-top:none;padding:20px;border-radius:0 0 8px 8px;">
+          <p style="margin:0 0 12px;color:#334155;line-height:1.5;">${safeBody}</p>
+          <p style="margin:0;font-size:12px;color:#64748B;">
+            Type: <span style="color:${accent};font-weight:600;">${type}</span>
+            · Category: ${category}
+          </p>
+          <p style="margin:16px 0 0;">
+            <a href="${appUrl}" style="display:inline-block;background:#E67E22;color:#fff;text-decoration:none;padding:10px 18px;border-radius:6px;font-weight:600;">
+              Open ${env.appName}
+            </a>
+          </p>
+        </div>
+        <p style="font-size:11px;color:#94A3B8;margin-top:12px;text-align:center;">
+          You receive this because bell notifications are mirrored to email. Change this in Profile → Notifications.
+        </p>
+      </div>
+    `,
+  });
+};
+
 const sendContactReplyEmail = async ({ to, name, subject, originalMessage, replyMessage }) => {
   const safeSubject = subject || 'Your message';
   return sendEmail({
@@ -147,5 +186,6 @@ module.exports = {
   sendPasswordResetEmail,
   sendPasswordResetCodeEmail,
   sendNotificationEmail,
+  sendBellNotificationEmail,
   sendContactReplyEmail,
 };

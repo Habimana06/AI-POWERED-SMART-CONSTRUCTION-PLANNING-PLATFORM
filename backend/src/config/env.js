@@ -45,6 +45,20 @@ const env = {
     apiKey: process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY || '',
     imageModel: process.env.GEMINI_IMAGE_MODEL || 'gemini-2.5-flash-image',
     baseUrl: 'https://generativelanguage.googleapis.com/v1beta',
+    /** Skip Gemini when true or after quota errors (use Pollinations/Grok first). */
+    skip: process.env.IMAGE_SKIP_GEMINI === 'true' || process.env.IMAGE_SKIP_GEMINI === '1',
+  },
+
+  pollinations: {
+    token: process.env.POLLINATIONS_API_KEY || process.env.POLLINATIONS_TOKEN || '',
+  },
+
+  image: {
+    /** Comma-separated provider ids, e.g. pollinations-flux,pollinations-turbo,grok,gemini */
+    providerOrder: (process.env.IMAGE_PROVIDER_ORDER || '')
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean),
   },
 
   smtp: {

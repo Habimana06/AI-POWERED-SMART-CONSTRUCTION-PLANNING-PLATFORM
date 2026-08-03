@@ -196,8 +196,8 @@ export const projectsAPI = {
   assignContractor: (id, data) => api.post(`/projects/${id}/assign-contractor`, data).then(unwrap),
   getDesigns: (id) => api.get(`/projects/${id}/designs`).then(unwrap),
   saveDesign: (id, data) => api.post(`/projects/${id}/designs`, data).then(unwrap),
-  generateDesignExterior: (projectId, designId) =>
-    api.post(`/projects/${projectId}/designs/${designId}/generate-exterior`, {}).then(unwrap),
+  generateDesignExterior: (projectId, designId, body = {}) =>
+    api.post(`/projects/${projectId}/designs/${designId}/generate-exterior`, body).then(unwrap),
   saveDesignAiRender: (projectId, designId, data) =>
     api.patch(`/projects/${projectId}/designs/${designId}/ai-render`, data).then(unwrap),
   getBlueprints: (id) => api.get(`/schedule/projects/${id}/blueprints`).then(unwrap),

@@ -17,6 +17,8 @@ function buildUrl(prompt, { width = 1280, height = 720, seed, model = 'flux' } =
     nologo: 'true',
     seed: String(seed ?? Math.floor(Math.random() * 1_000_000)),
   });
+  const token = process.env.POLLINATIONS_API_KEY || process.env.POLLINATIONS_TOKEN;
+  if (token) params.set('token', token);
   return `https://image.pollinations.ai/prompt/${encodeURIComponent(safePrompt)}?${params.toString()}`;
 }
 
@@ -31,16 +33,20 @@ function aspectToSize(aspectRatio = '16:9') {
 async function generateImage({ prompt, aspectRatio = '16:9', model = 'flux' }) {
   const size = aspectToSize(aspectRatio);
   const safePrompt = truncatePrompt(prompt, 900);
-  const maxAttempts = 5;
+  const maxAttempts = 6;
   let lastError = null;
 
   for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
     try {
-      const url = buildUrl(safePrompt, { ...size, model, seed: Math.floor(Math.random() * 1_000_000) });
-      const response = await fetch(url, { signal: AbortSignal.timeout(120_000) });
+      const retrySize = attempt >= 4 ? { width: Math.round(size.width * 0.75), height: Math.round(size.height * 0.75) } : size;
+      const url = buildUrl(safePrompt, { ...retrySize, model, seed: Math.floor(Math.random() * 1_000_000) });
+      const response = await fetch(url, {
+        signal: AbortSignal.timeout(120_000),
+        headers: { 'User-Agent': 'BuildPlanAI/1.0' },
+      });
 
       if (response.status === 429 && attempt < maxAttempts) {
-        const waitMs = 20_000 * attempt;
+        const waitMs = 25_000 * attempt;
         console.warn(`Pollinations ${model} rate limited (429), waiting ${waitMs / 1000}s (attempt ${attempt}/${maxAttempts})`);
         await new Promise((r) => setTimeout(r, waitMs));
         continue;

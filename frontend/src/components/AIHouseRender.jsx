@@ -74,12 +74,17 @@ export default function AIHouseRender({
   }, [designsPoll, mode]);
 
   const generateMutation = useMutation({
-    mutationFn: () => projectsAPI.generateDesignExterior(projectId, designId),
+    mutationFn: ({ force = false } = {}) => projectsAPI.generateDesignExterior(projectId, designId, { force }),
     onMutate: () => {
       setGenerating(true);
       setGenError('');
     },
     onSuccess: (data) => {
+      if (data?.skipped && data?.reason === 'in_progress') {
+        setGenerating(true);
+        setGenError('');
+        return;
+      }
       if (data?.render?.url) {
         setSavedImageUrl(data.render.url);
         setGenerating(false);
@@ -98,9 +103,9 @@ export default function AIHouseRender({
     },
   });
 
-  const runGenerate = () => {
+  const runGenerate = (force = false) => {
     if (!projectId || !designId || generateMutation.isPending) return;
-    generateMutation.mutate();
+    generateMutation.mutate({ force });
   };
 
   useEffect(() => {
@@ -147,7 +152,7 @@ export default function AIHouseRender({
           {projectId && designId && (
             <button
               type="button"
-              onClick={runGenerate}
+              onClick={() => runGenerate(true)}
               disabled={generateMutation.isPending}
               className="inline-flex items-center gap-1 rounded-lg border border-emerald-300 bg-white px-2.5 py-1 text-[11px] font-semibold text-emerald-900 hover:bg-emerald-100 disabled:opacity-50"
             >
@@ -194,12 +199,12 @@ export default function AIHouseRender({
             <AlertCircle className="h-8 w-8 text-safety" />
             <p className="text-xs text-steel max-w-md">{genError}</p>
             {isRateLimited && (
-              <p className="text-[10px] text-concrete">Wait about 15 seconds before retrying.</p>
+              <p className="text-[10px] text-concrete">Free APIs are rate-limited. Wait 1–2 minutes, then click Retry once (do not spam refresh).</p>
             )}
             {projectId && designId && (
               <button
                 type="button"
-                onClick={runGenerate}
+                onClick={() => runGenerate(true)}
                 disabled={generateMutation.isPending}
                 className="btn-primary !py-2 !px-4 text-sm inline-flex items-center gap-2"
               >

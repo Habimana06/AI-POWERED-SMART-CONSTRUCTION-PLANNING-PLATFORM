@@ -15,24 +15,48 @@ const PROVIDER_LABELS = {
   grok: 'Grok Imagine (paid)',
 };
 
+/** Skip Gemini until this timestamp after quota/rate-limit errors. */
+let geminiCooldownUntil = 0;
+
 function isXaiBillingError(message = '') {
   return /403|permission-denied|doesn't have any credits|no credits|licenses yet/i.test(message);
 }
 
+function isGeminiQuotaError(message = '') {
+  return /429|quota exceeded|rate.limit|free_tier|limit:\s*0/i.test(message);
+}
+
+function isGeminiAvailable() {
+  if (!env.gemini.apiKey || env.gemini.skip) return false;
+  if (Date.now() < geminiCooldownUntil) return false;
+  return true;
+}
+
+function markGeminiQuotaHit(err) {
+  if (isGeminiQuotaError(err?.message || String(err))) {
+    geminiCooldownUntil = Date.now() + 30 * 60 * 1000;
+    console.warn('[Image] Gemini quota/rate limit — skipping Gemini for 30 minutes (use Pollinations/Grok).');
+  }
+}
+
 function defaultProviderOrder() {
-  const order = [];
-  if (env.gemini.apiKey) order.push('gemini');
-  order.push('pollinations-turbo', 'pollinations-flux');
+  if (env.image.providerOrder.length) {
+    return env.image.providerOrder.filter((id) => PROVIDER_LABELS[id] || id === 'grok' || id.startsWith('pollinations'));
+  }
+  // Pollinations + Grok first — Gemini free image tier is often exhausted (limit: 0)
+  const order = ['pollinations-flux', 'pollinations-turbo'];
   if (env.xai.apiKey) order.push('grok');
+  if (isGeminiAvailable()) order.push('gemini');
   return order;
 }
 
 function resolveProviderOrder(preferredProvider = 'auto') {
+  const base = defaultProviderOrder();
   if (preferredProvider && preferredProvider !== 'auto') {
-    const fallbacks = defaultProviderOrder().filter((id) => id !== preferredProvider);
+    const fallbacks = base.filter((id) => id !== preferredProvider);
     return [preferredProvider, ...fallbacks];
   }
-  return defaultProviderOrder();
+  return base;
 }
 
 async function runProvider(providerId, {
@@ -57,18 +81,26 @@ async function runProvider(providerId, {
 
   switch (providerId) {
     case 'gemini': {
-      const result = await geminiService.generateImage({
-        prompt: refs.length ? editPrompt : fullPrompt,
-        referenceImage: primaryRef,
-        referenceImages: refs,
-        aspectRatio,
-      });
-      return {
-        imageDataUri: geminiService.toDataUri(result.base64, result.mime),
-        usedReference: refs.length > 0,
-        provider: 'gemini',
-        model: result.model,
-      };
+      if (!isGeminiAvailable()) {
+        throw new Error('Gemini skipped (quota cooldown or IMAGE_SKIP_GEMINI=true)');
+      }
+      try {
+        const result = await geminiService.generateImage({
+          prompt: refs.length ? editPrompt : fullPrompt,
+          referenceImage: primaryRef,
+          referenceImages: refs,
+          aspectRatio,
+        });
+        return {
+          imageDataUri: geminiService.toDataUri(result.base64, result.mime),
+          usedReference: refs.length > 0,
+          provider: 'gemini',
+          model: result.model,
+        };
+      } catch (err) {
+        markGeminiQuotaHit(err);
+        throw err;
+      }
     }
     case 'pollinations-flux': {
       const result = await pollinationsService.generateImage({
@@ -150,6 +182,10 @@ async function generateWithProviders(options) {
   const attempts = [];
 
   for (const providerId of order) {
+    if (providerId === 'gemini' && !isGeminiAvailable()) {
+      attempts.push({ provider: providerId, error: 'Skipped (quota cooldown or IMAGE_SKIP_GEMINI)' });
+      continue;
+    }
     try {
       const result = await runProvider(providerId, {
         fullPrompt,
@@ -180,15 +216,20 @@ async function generateWithProviders(options) {
   }
 
   const summary = attempts.map((a) => `${a.provider}: ${a.error}`).join('; ');
-  throw new Error(`All image providers failed. ${summary}`);
+  throw new Error(
+    `All image providers failed. ${summary}. `
+    + 'Free Pollinations may be rate-limited — wait 1–2 minutes and retry once. '
+    + 'For Gemini, create a new key at aistudio.google.com or set IMAGE_SKIP_GEMINI=true. '
+    + 'For Grok, add credits at console.x.ai.',
+  );
 }
 
 function listAvailableProviders() {
   return {
     auto: defaultProviderOrder(),
     options: [
-      { id: 'auto', label: 'Auto (best free first)', available: true },
-      { id: 'gemini', label: PROVIDER_LABELS.gemini, available: Boolean(env.gemini.apiKey) },
+      { id: 'auto', label: 'Auto (Pollinations → Grok → Gemini)', available: true },
+      { id: 'gemini', label: PROVIDER_LABELS.gemini, available: isGeminiAvailable() },
       { id: 'pollinations-flux', label: PROVIDER_LABELS['pollinations-flux'], available: true },
       { id: 'pollinations-turbo', label: PROVIDER_LABELS['pollinations-turbo'], available: true },
       { id: 'grok', label: PROVIDER_LABELS.grok, available: Boolean(env.xai.apiKey) },
@@ -200,4 +241,5 @@ module.exports = {
   generateWithProviders,
   listAvailableProviders,
   PROVIDER_LABELS,
+  defaultProviderOrder,
 };

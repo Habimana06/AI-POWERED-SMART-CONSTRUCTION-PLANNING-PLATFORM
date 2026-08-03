@@ -7,6 +7,9 @@ const aiService = require('./aiService');
 
 const DESIGN_FLOOR_H = 3;
 
+/** Prevent duplicate concurrent renders for the same design (doubles rate-limit hits). */
+const exteriorGenInFlight = new Map();
+
 function designRenderKey(specs, savedAt) {
   const payload = JSON.stringify({
     w: specs.width,
@@ -64,6 +67,19 @@ async function persistRender(projectId, designId, specs, imageDataUri, designKey
  * Server-side full-house render from saved design + floor plan (prompt built in backend only).
  */
 async function generateExteriorForDesign(projectId, designId, options = {}) {
+  const flightKey = `${projectId}:${designId}`;
+  if (exteriorGenInFlight.has(flightKey) && !options.force) {
+    return { skipped: true, reason: 'in_progress' };
+  }
+  exteriorGenInFlight.set(flightKey, Date.now());
+  try {
+    return await generateExteriorForDesignInner(projectId, designId, options);
+  } finally {
+    exteriorGenInFlight.delete(flightKey);
+  }
+}
+
+async function generateExteriorForDesignInner(projectId, designId, options = {}) {
   const designResult = await query(
     `SELECT bd.*, p.name AS project_name, p.project_type, p.building_type, p.metadata AS project_metadata
      FROM building_designs bd JOIN projects p ON p.id = bd.project_id

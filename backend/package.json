@@ -10,7 +10,8 @@
     "seed": "node src/db/seed.js",
     "db:setup": "node src/db/migrate.js && node src/db/seed.js",
     "test:smtp": "node scripts/test-smtp.js",
-    "test:forgot-password": "node scripts/test-forgot-password.js"
+    "test:forgot-password": "node scripts/test-forgot-password.js",
+    "test:pollinations": "node scripts/test-pollinations-image.js"
   },
   "keywords": [
     "construction",

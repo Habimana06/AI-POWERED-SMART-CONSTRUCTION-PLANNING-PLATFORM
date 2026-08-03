@@ -11,6 +11,7 @@ const { pool } = require('./config/database');
 const { notFound, errorHandler } = require('./middleware/errorHandler');
 const notificationService = require('./services/notificationService');
 const { isSmtpConfigured } = require('./services/emailService');
+const { defaultProviderOrder } = require('./services/imageRenderService');
 
 const app = express();
 const server = http.createServer(app);
@@ -101,6 +102,7 @@ const start = async () => {
     console.log(`Environment: ${env.nodeEnv}`);
     console.log(`Email (SMTP): ${isSmtpConfigured() ? 'configured' : 'NOT configured — set SMTP_USER/SMTP_PASS in .env'}`);
     console.log(`Notifications: bell → email mirror ${env.notifications.mirrorBellEmail ? 'ON' : 'OFF'}`);
+    console.log(`Image providers (auto order): ${defaultProviderOrder().join(' → ') || 'none configured'}`);
     console.log(`Health check: http://localhost:${env.port}/api/health`);
   });
 };
